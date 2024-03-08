@@ -1,10 +1,10 @@
-use ark_bls12_381::{Fr, FrConfig, G1Affine, G1Projective};
+use ark_bls12_381::{Fr, G1Affine, G1Projective};
 use ark_ec::{CurveGroup, Group};
-use ark_ff::UniformRand;
-use ark_ff::{
-    // field_hashers::{DefaultFieldHasher, HashToField},
-    fields::{Fp, Fp64, MontBackend, MontConfig},
-};
+use ark_ff::fields::{Fp, MontBackend, MontConfig};
+use ark_ff::{Field, UniformRand};
+use ark_serialize::CanonicalSerialize;
+use sha2::{Digest, Sha256};
+
 pub struct SchnorrSig {}
 
 // consider the base field of the BLS12_381 curve:
@@ -32,12 +32,54 @@ impl SchnorrSig {
         );
         // convert to affine coordinates
         let public_key_affine: G1Affine = public_key_projective.into_affine();
-        
+
         (private_key, public_key_affine)
+    }
+
+    fn sign(private_key: Fr, message: &[u8]) -> (G1Affine, Fr) {
+        // Generate a random nonce alpha_t from Zq
+        let alpha_t: Fr = Fr::rand(&mut rand::thread_rng());
+
+        // Compute u_t = g^alpha_t
+        let u_t = G1Projective::generator() * alpha_t;
+        let u_t_affine: G1Affine = u_t.into_affine();
+
+        // Hash message and u_t to get c
+        let c = SchnorrSig::hash_message_and_ut(message, &u_t_affine);
+
+        // Compute alpha_z = alpha_t + alpha_c
+        let alpha_z = alpha_t + (private_key * c);
+
+        (u_t_affine, alpha_z)
+    }
+
+    fn hash_message_and_ut(message: &[u8], u_t: &G1Affine) -> Fr {
+        // Serialize the coordinates of u_t_affine to bytes
+        let mut u_t_serialized_bytes = Vec::new();
+    
+        u_t.serialize_compressed(&mut u_t_serialized_bytes)
+            .expect("Serialization failed");
+    
+        let mut hasher = Sha256::new();
+        hasher.update(message);
+        hasher.update(&u_t_serialized_bytes);
+        let hash_result = hasher.finalize();
+    
+        // first 32 bytes of hash
+        Fr::from_random_bytes(&hash_result[..32]).unwrap()
     }
 }
 
+
 pub fn main() {
     let (sk, pk) = SchnorrSig::generate_keypair();
-    println!("Private Key={:?}, Public Key={:?}", sk, pk);
+    // println!("Private Key={:?}, Public Key={:?}", sk, pk);
+
+    let msg = b"Hello world!";
+
+    let (x, y) = SchnorrSig::sign(sk, msg);
+    println!(
+        "Private Key={:?}, Public Key={:?}, Signature.x={}, Signature.x={}",
+        sk, pk, x, y
+    );
 }
