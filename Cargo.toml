@@ -10,5 +10,6 @@ description = "This is schnorr signature implementation using arkwork"
 
 [dependencies]
 ark-bls12-381 = "0.4.0"
+ark-ec = "0.4.2"
 ark-ff = "0.4.2"
 rand = "0.8.5"
