@@ -7,6 +7,13 @@ use sha2::{Digest, Sha256};
 
 pub struct SchnorrSig {}
 
+pub trait SchnorrSigTrait {
+    fn generate_keypair() -> (ScalarField, G1Affine);
+    fn sign(private_key: ScalarField, message: &[u8]) -> (G1Affine, ScalarField);
+    fn hash_message_and_ut(message: &[u8], u_t: &G1Affine) -> ScalarField;
+    fn verify(public_key: G1Affine, message: &[u8], signature: (G1Affine, ScalarField)) -> bool;
+}
+
 // consider the base field of the BLS12_381 curve:
 // Since the base field has 381 bits, we use u64 array of of size 6 that can accommodate for 384 bits.
 #[derive(MontConfig)]
@@ -15,7 +22,7 @@ pub struct SchnorrSig {}
 pub struct FqConfig;
 pub type Fq = Fp<MontBackend<FqConfig, 6>, 6>;
 
-impl SchnorrSig {
+impl SchnorrSigTrait for SchnorrSig {
     fn generate_keypair() -> (ScalarField, G1Affine) {
         // private key
         let private_key: ScalarField = ScalarField::rand(&mut rand::thread_rng());
@@ -65,11 +72,7 @@ impl SchnorrSig {
             .unwrap_or(ScalarField::rand(&mut rand::thread_rng()))
     }
 
-    pub fn verify(
-        public_key: G1Affine,
-        message: &[u8],
-        signature: (G1Affine, ScalarField),
-    ) -> bool {
+    fn verify(public_key: G1Affine, message: &[u8], signature: (G1Affine, ScalarField)) -> bool {
         let (u_t, alpha_z) = signature;
 
         // compute c = H(m, u_t)
