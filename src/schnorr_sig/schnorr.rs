@@ -61,7 +61,6 @@ impl SchnorrSig {
         hasher.update(&u_t_serialized_bytes);
         let hash_result = hasher.finalize();
 
-        // i had to use unwrap_or to return random scalar because of some and none
         ScalarField::from_random_bytes(&hash_result)
             .unwrap_or(ScalarField::rand(&mut rand::thread_rng()))
     }
@@ -90,18 +89,12 @@ impl SchnorrSig {
 
 pub fn main() {
     let (sk, pk) = SchnorrSig::generate_keypair();
-    let (sk_false, _) = SchnorrSig::generate_keypair();
 
     let msg = b"Hello world!";
 
     let sig = SchnorrSig::sign(sk, msg);
-    let sig_false = SchnorrSig::sign(sk_false, msg);
     let verify = SchnorrSig::verify(pk, msg, sig);
-    let verify_false = SchnorrSig::verify(pk, msg, sig_false);
-    println!(
-        "Private Key={:?}, Public Key={:?}, Signature={:?}, verify={:?}, verify_false={}",
-        sk, pk, sig, verify, verify_false
-    );
+    println!("Verify={}", verify);
 }
 
 #[cfg(test)]
@@ -142,5 +135,18 @@ mod test {
         let verify = SchnorrSig::verify(pk, msg, (ut, ScalarField::rand(&mut rand::thread_rng())));
 
         assert_eq!(verify, false);
+    }
+
+    #[test]
+    fn test_sign_verify_tampered_secret_key() {
+        let (_, pk) = SchnorrSig::generate_keypair();
+        let (tampered_sk, _) = SchnorrSig::generate_keypair();
+
+        let msg = b"Hello world!";
+
+        let tampered_sig = SchnorrSig::sign(tampered_sk, msg);
+        let tampered_verify = SchnorrSig::verify(pk, msg, tampered_sig);
+
+        assert_eq!(tampered_verify, false);
     }
 }
