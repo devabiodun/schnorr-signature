@@ -4,6 +4,7 @@ use ark_ff::{Field, Fp, MontBackend, MontConfig, UniformRand};
 use ark_serialize::CanonicalSerialize;
 use sha2::{Digest, Sha256};
 use std::ops::Mul;
+
 pub struct SchnorrSig {}
 
 // consider the base field of the BLS12_381 curve:
@@ -60,7 +61,9 @@ impl SchnorrSig {
         hasher.update(&u_t_serialized_bytes);
         let hash_result = hasher.finalize();
 
-        ScalarField::from_random_bytes(&hash_result).unwrap()
+        // i had to use unwrap_or to return random scalar because of some and none
+        ScalarField::from_random_bytes(&hash_result)
+            .unwrap_or(ScalarField::rand(&mut rand::thread_rng()))
     }
 
     pub fn verify(
@@ -112,7 +115,7 @@ mod test {
 
         let sig = SchnorrSig::sign(sk, msg);
         let verify = SchnorrSig::verify(pk, msg, sig);
-        
+
         assert_eq!(verify, true);
     }
 
@@ -125,10 +128,19 @@ mod test {
 
         let sig = SchnorrSig::sign(sk, msg);
         let verify = SchnorrSig::verify(pk, tampered_msg, sig);
-        
+
         assert_eq!(verify, false);
     }
 
     #[test]
-    fn test_sign_verify_tampered_signature() {}
+    fn test_sign_verify_tampered_signature() {
+        let (sk, pk) = SchnorrSig::generate_keypair();
+
+        let msg = b"Hello world!";
+
+        let (ut, _) = SchnorrSig::sign(sk, msg);
+        let verify = SchnorrSig::verify(pk, msg, (ut, ScalarField::rand(&mut rand::thread_rng())));
+
+        assert_eq!(verify, false);
+    }
 }
