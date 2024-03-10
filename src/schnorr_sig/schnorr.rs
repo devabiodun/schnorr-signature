@@ -92,8 +92,7 @@ impl SchnorrSigTrait for SchnorrSig {
 
 pub fn main() {
     let (sk, pk) = SchnorrSig::generate_keypair();
-
-    let msg = b"Hello world!";
+    let msg = b"Alice -> 2 ETH -> Bob";
 
     let sig = SchnorrSig::sign(sk, msg);
     let verify = SchnorrSig::verify(pk, msg, sig);
@@ -107,7 +106,7 @@ mod test {
     #[test]
     fn test_sign_verify() {
         let (sk, pk) = SchnorrSig::generate_keypair();
-        let msg = b"Hello world!";
+        let msg = b"Alice -> 2 ETH -> Bob";
 
         let sig = SchnorrSig::sign(sk, msg);
         let verify = SchnorrSig::verify(pk, msg, sig);
@@ -119,8 +118,8 @@ mod test {
     fn test_sign_verify_tampered_message() {
         let (sk, pk) = SchnorrSig::generate_keypair();
 
-        let msg = b"Hello world!";
-        let tampered_msg = b"Hello world!!";
+        let msg = b"Alice -> 2 ETH -> Bob";
+        let tampered_msg = b"Alice -> 3 ETH -> Bob";
 
         let sig = SchnorrSig::sign(sk, msg);
         let verify = SchnorrSig::verify(pk, tampered_msg, sig);
@@ -132,7 +131,7 @@ mod test {
     fn test_sign_verify_tampered_signature() {
         let (sk, pk) = SchnorrSig::generate_keypair();
 
-        let msg = b"Hello world!";
+        let msg = b"Alice -> 2 ETH -> Bob";
 
         let (ut, _) = SchnorrSig::sign(sk, msg);
         let verify = SchnorrSig::verify(pk, msg, (ut, ScalarField::rand(&mut rand::thread_rng())));
@@ -145,7 +144,7 @@ mod test {
         let (_, pk) = SchnorrSig::generate_keypair();
         let (tampered_sk, _) = SchnorrSig::generate_keypair();
 
-        let msg = b"Hello world!";
+        let msg = b"Alice -> 2 ETH -> Bob";
 
         let tampered_sig = SchnorrSig::sign(tampered_sk, msg);
         let tampered_verify = SchnorrSig::verify(pk, msg, tampered_sig);
