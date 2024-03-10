@@ -15,10 +15,7 @@ pub struct FqConfig;
 pub type Fq = Fp<MontBackend<FqConfig, 6>, 6>;
 
 impl SchnorrSig {
-    fn generate_keypair() -> (
-        ScalarField,
-        G1Affine,
-    ) {
+    fn generate_keypair() -> (ScalarField, G1Affine) {
         // private key
         let private_key: ScalarField = ScalarField::rand(&mut rand::thread_rng());
         // public key
@@ -91,7 +88,7 @@ impl SchnorrSig {
 pub fn main() {
     let (sk, pk) = SchnorrSig::generate_keypair();
     let (sk_false, _) = SchnorrSig::generate_keypair();
-    
+
     let msg = b"Hello world!";
 
     let sig = SchnorrSig::sign(sk, msg);
@@ -102,4 +99,25 @@ pub fn main() {
         "Private Key={:?}, Public Key={:?}, Signature={:?}, verify={:?}, verify_false={}",
         sk, pk, sig, verify, verify_false
     );
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_sign_verify() {
+        let (sk, pk) = SchnorrSig::generate_keypair();
+        let msg = b"Hello world!";
+
+        let sig = SchnorrSig::sign(sk, msg);
+        let verify = SchnorrSig::verify(pk, msg, sig);
+        assert_eq!(verify, true);
+    }
+
+    #[test]
+    fn test_sign_verify_tampered_message() {}
+
+    #[test]
+    fn test_sign_verify_tampered_signature() {}
 }
