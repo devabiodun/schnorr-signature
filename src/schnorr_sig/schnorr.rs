@@ -112,11 +112,22 @@ mod test {
 
         let sig = SchnorrSig::sign(sk, msg);
         let verify = SchnorrSig::verify(pk, msg, sig);
+        
         assert_eq!(verify, true);
     }
 
     #[test]
-    fn test_sign_verify_tampered_message() {}
+    fn test_sign_verify_tampered_message() {
+        let (sk, pk) = SchnorrSig::generate_keypair();
+
+        let msg = b"Hello world!";
+        let tampered_msg = b"Hello world!!";
+
+        let sig = SchnorrSig::sign(sk, msg);
+        let verify = SchnorrSig::verify(pk, tampered_msg, sig);
+        
+        assert_eq!(verify, false);
+    }
 
     #[test]
     fn test_sign_verify_tampered_signature() {}
