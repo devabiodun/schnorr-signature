@@ -2,8 +2,8 @@ use ark_bls12_381::{Fr as ScalarField, G1Affine, G1Projective};
 use ark_ec::{CurveGroup, Group};
 use ark_ff::{Field, Fp, MontBackend, MontConfig, UniformRand};
 use ark_serialize::CanonicalSerialize;
+use ark_std::ops::Mul;
 use sha2::{Digest, Sha256};
-use std::ops::Mul;
 
 pub struct SchnorrSig {}
 
