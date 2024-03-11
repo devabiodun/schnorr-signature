@@ -14,6 +14,13 @@ pub trait SchnorrSigTrait {
     fn verify(public_key: G1Affine, message: &[u8], signature: (G1Affine, ScalarField)) -> bool;
 }
 
+#[derive(Debug)]
+pub enum SchnorrSigError {
+    OperationFailure(String),
+    SerializationFailed,
+    FailedToConvertBytesToScalarField,
+}
+
 // consider the base field of the BLS12_381 curve:
 // Since the base field has 381 bits, we use u64 array of of size 6 that can accommodate for 384 bits.
 #[derive(MontConfig)]
@@ -55,14 +62,13 @@ impl SchnorrSigTrait for SchnorrSig {
         let mut u_t_serialized_bytes = Vec::new();
 
         u_t.serialize_compressed(&mut u_t_serialized_bytes)
-            .expect("Serialization failed");
+            .expect("Serialization Failed");
 
         let mut hasher = Sha256::new();
         hasher.update(message);
         hasher.update(&u_t_serialized_bytes);
         let hash_result = hasher.finalize();
 
-        // ScalarField::
         ScalarField::from_random_bytes(&hash_result).expect("Failed to hash")
     }
 
