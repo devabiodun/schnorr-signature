@@ -28,14 +28,8 @@ impl SchnorrSigTrait for SchnorrSig {
         let private_key: ScalarField = ScalarField::rand(&mut rand::thread_rng());
         // public key
         let public_key = G1Projective::generator() * private_key;
-        // public key in projective coordinates
-        let public_key_projective = G1Projective::new(
-            public_key.x.into(),
-            public_key.y.into(),
-            public_key.z.into(),
-        );
-        // convert to affine coordinates
-        let public_key_affine: G1Affine = public_key_projective.into_affine();
+        // convert to affine
+        let public_key_affine: G1Affine = public_key.into_affine();
 
         (private_key, public_key_affine)
     }
@@ -68,8 +62,8 @@ impl SchnorrSigTrait for SchnorrSig {
         hasher.update(&u_t_serialized_bytes);
         let hash_result = hasher.finalize();
 
-        ScalarField::from_random_bytes(&hash_result)
-            .unwrap_or(ScalarField::rand(&mut rand::thread_rng()))
+        // ScalarField::
+        ScalarField::from_random_bytes(&hash_result).expect("Failed to hash")
     }
 
     fn verify(public_key: G1Affine, message: &[u8], signature: (G1Affine, ScalarField)) -> bool {
