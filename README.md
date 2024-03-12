@@ -4,7 +4,7 @@ This is an implementation of the Schnorr Signature.
 
 ## Clone this repository:
 ```
-https://github.com/devabiodun/schnorr-signature
+git clone https://github.com/devabiodun/schnorr-signature.git
 ```
 ## Executing program
 1. Change directory into this project
